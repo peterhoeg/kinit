@@ -96,9 +96,9 @@ static const char *extra_libs[] = {
     "libKF5Parts.5.dylib",
     "libKF5Plasma.5.dylib"
 #else
-    "libKF5KIOCore.so.5",
-    "libKF5Parts.so.5",
-    "libKF5Plasma.so.5"
+    NIXPKGS_KF5_KIOCORE,
+    NIXPKGS_KF5_PARTS,
+    NIXPKGS_KF5_PLASMA
 #endif
 };
 #endif
@@ -1524,20 +1524,6 @@ static int initXconnection()
 }
 #endif
 
-#ifndef Q_OS_OSX
-// Find a shared lib in the lib dir, e.g. libkio.so.
-// Completely unrelated to plugins.
-static QString findSharedLib(const QString &lib)
-{
-    QString path = QFile::decodeName(CMAKE_INSTALL_PREFIX "/" LIB_INSTALL_DIR "/") + lib;
-    if (QFile::exists(path)) {
-        return path;
-    }
-    // We could also look in LD_LIBRARY_PATH, but really, who installs the main libs in different prefixes?
-    return QString();
-}
-#endif
-
 extern "C" {
 
     static void secondary_child_handler(int)
@@ -1680,7 +1666,7 @@ int main(int argc, char **argv)
     if (!d.suicide && qEnvironmentVariableIsEmpty("KDE_IS_PRELINKED")) {
         const int extrasCount = sizeof(extra_libs) / sizeof(extra_libs[0]);
         for (int i = 0; i < extrasCount; i++) {
-            const QString extra = findSharedLib(QString::fromLatin1(extra_libs[i]));
+            const QString extra = QString::fromLatin1(extra_libs[i]);
             if (!extra.isEmpty()) {
                 QLibrary l(extra);
                 l.setLoadHints(QLibrary::ExportExternalSymbolsHint);
